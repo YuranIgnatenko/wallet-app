@@ -9,6 +9,7 @@ import (
 
 func ConnectDatabase() (*pgxpool.Pool, error) {
 	database_url := config.AppConfig.DATABASE_URL
+
 	pool, err := pgxpool.Connect(context.Background(), database_url)
 
 	if err != nil {

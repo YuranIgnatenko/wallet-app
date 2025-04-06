@@ -17,5 +17,5 @@ func main() {
 	}
 
 	router := v1.SetupRouter()
-	log.Fatal(router.Run())
+	log.Fatal(router.Run(config.AppConfig.SERVER_URL))
 }

@@ -15,6 +15,9 @@ type Config struct {
 	DB_PASS      string
 	DB_NAME      string
 	DATABASE_URL string
+	SERVER_HOST  string
+	SERVER_PORT  string
+	SERVER_URL   string
 }
 
 var AppConfig *Config
@@ -33,9 +36,10 @@ func LoadConfig(namefile string) {
 	db_user := os.Getenv("DB_USER")
 	db_pass := os.Getenv("DB_PASS")
 	db_name := os.Getenv("DB_NAME")
-
-	db_url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		db_host, db_port, db_user, db_pass, db_name)
+	db_url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", db_user, db_pass, db_host, db_port, db_name)
+	server_host := os.Getenv("SERVER_HOST")
+	server_port := os.Getenv("SERVER_PORT")
+	server_url := fmt.Sprintf("%s:%s", server_host, server_port)
 
 	AppConfig = &Config{
 		DB_HOST:      db_host,
@@ -44,5 +48,8 @@ func LoadConfig(namefile string) {
 		DB_PASS:      db_pass,
 		DB_NAME:      db_name,
 		DATABASE_URL: db_url,
+		SERVER_HOST:  server_host,
+		SERVER_PORT:  server_port,
+		SERVER_URL:   server_url,
 	}
 }

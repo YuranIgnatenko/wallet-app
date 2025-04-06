@@ -19,7 +19,7 @@ func NewWallet() *Wallet {
 }
 
 func (wallet *Wallet) Deposit(amount float64) error {
-	if (0 >= amount) || (amount > 99999999999) {
+	if amount > 0 {
 		return errors.New("amoubnrt")
 	}
 	wallet.Balance += amount
