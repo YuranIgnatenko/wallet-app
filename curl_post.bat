@@ -1,0 +1,1 @@
+curl -X POST -d "{\"test\": \"that\"}" http://localhost:8082/test

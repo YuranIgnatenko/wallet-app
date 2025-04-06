@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_PASSWORD: postgres9872
+      POSTGRES_USER: postgres
+      POSTGRES_DB: wallets
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: "host=go_db user=postgres password=postgres9872 dbname=wallets sslmode=disable"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:  
+  postgres_data: {}

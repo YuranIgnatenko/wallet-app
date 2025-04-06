@@ -1,0 +1,11 @@
+*.tmp
+*.log
+tmp/
+temp/
+bin/
+obj/
+build/
+.exe
+*.env
+go.mod
+go.sum
