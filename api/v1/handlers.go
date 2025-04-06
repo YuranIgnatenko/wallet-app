@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func HandlePostAmount(cfg *config.Config) gin.HandlerFunc {
+func HandlePostAmount() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var data JsonDataRequestPostWallet
 		if err := c.BindJSON(&data); err != nil {
@@ -18,14 +18,14 @@ func HandlePostAmount(cfg *config.Config) gin.HandlerFunc {
 			})
 			return
 		}
-		wallet, err := services.GetWallet(cfg, data.WalletId)
+		wallet, err := services.GetWallet(data.WalletId)
 		if data.OperationType == "DEPOSIT" {
 			wallet.Deposit(data.Amount)
 		}
 		if data.OperationType == "WITHDRAW" {
 			wallet.Withdraw(data.Amount)
 		}
-		services.UpdateWallet(cfg, wallet)
+		services.UpdateWallet(config.AppConfig, wallet)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{
 				"message": err.Error(),
@@ -36,9 +36,9 @@ func HandlePostAmount(cfg *config.Config) gin.HandlerFunc {
 	}
 }
 
-func HandlerGetWallets(cfg *config.Config) gin.HandlerFunc {
+func HandlerGetWallets() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		wallets, err := services.GetWalletAll(cfg)
+		wallets, err := services.GetWalletAll()
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{
 				"message": err.Error(),
@@ -49,7 +49,7 @@ func HandlerGetWallets(cfg *config.Config) gin.HandlerFunc {
 	}
 }
 
-func HandlerGetBalance(cfg *config.Config) gin.HandlerFunc {
+func HandlerGetBalance() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id_string := c.Param("id")
 		id, err := uuid.Parse(id_string)
@@ -60,7 +60,7 @@ func HandlerGetBalance(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		wallet, err := services.GetWallet(cfg, id)
+		wallet, err := services.GetWallet(id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{
 				"message": err.Error(),

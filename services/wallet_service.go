@@ -9,12 +9,14 @@ import (
 	"github.com/google/uuid"
 )
 
-func GetWalletAll(cfg *config.Config) ([]models.Wallet, error) {
-	conn, err := db.ConnectDatabase(cfg)
+func GetWalletAll() ([]models.Wallet, error) {
+	conn, err := db.ConnectDatabase()
 	if err != nil {
 		return nil, err
 	}
-	rows, err := conn.Query(context.Background(), "SELECT * FROM wallets")
+	defer conn.Close()
+
+	rows, err := conn.Query(context.Background(), "SELECT * FROM $1", config.AppConfig.DB_NAME)
 	if err != nil {
 		return nil, err
 	}
@@ -29,28 +31,30 @@ func GetWalletAll(cfg *config.Config) ([]models.Wallet, error) {
 	return wallets, nil
 }
 
-func GetWallet(cfg *config.Config, id uuid.UUID) (*models.Wallet, error) {
-	conn, err := db.ConnectDatabase(cfg)
-	defer conn.Close()
+func GetWallet(id uuid.UUID) (*models.Wallet, error) {
+	conn, err := db.ConnectDatabase()
 	if err != nil {
 		return nil, err
 	}
+	defer conn.Close()
+
 	var wallet models.Wallet
-	err = conn.QueryRow(context.Background(), "SELECT id, balance FROM wallets WHERE id = $1", id).Scan(&wallet.ID, &wallet.Balance)
+	err = conn.QueryRow(context.Background(), "SELECT id, balance FROM $1 WHERE id = $2", config.AppConfig.DB_NAME, id).Scan(&wallet.ID, &wallet.Balance)
 	if err != nil {
 		return nil, err
 	}
 	return &wallet, nil
 }
 
-func CreateWallet(cfg *config.Config) (*models.Wallet, error) {
-	conn, err := db.ConnectDatabase(cfg)
-	defer conn.Close()
+func CreateWallet() (*models.Wallet, error) {
+	conn, err := db.ConnectDatabase()
 	if err != nil {
 		return nil, err
 	}
+	defer conn.Close()
+
 	wallet := models.NewWallet()
-	_, err = conn.Exec(context.Background(), "INSERT INTO wallets (id, balance) VALUES ($1, $2)", wallet.ID, wallet.Balance)
+	_, err = conn.Exec(context.Background(), "INSERT INTO $1 (id, balance) VALUES ($2, $3)", config.AppConfig.DB_NAME, wallet.ID, wallet.Balance)
 	if err != nil {
 		return nil, err
 	}
@@ -58,11 +62,12 @@ func CreateWallet(cfg *config.Config) (*models.Wallet, error) {
 }
 
 func UpdateWallet(cfg *config.Config, wallet *models.Wallet) error {
-	conn, err := db.ConnectDatabase(cfg)
-	defer conn.Close()
+	conn, err := db.ConnectDatabase()
 	if err != nil {
 		return err
 	}
-	_, err = conn.Exec(context.Background(), "UPDATE wallets SET balance = $1 WHERE id = $2", wallet.Balance, wallet.ID)
+	defer conn.Close()
+
+	_, err = conn.Exec(context.Background(), "UPDATE $1 SET balance = $2 WHERE id = $3", config.AppConfig.DB_NAME, wallet.Balance, wallet.ID)
 	return err
 }

@@ -1,15 +1,11 @@
 package v1
 
-import (
-	"wallet-app/config"
+import "github.com/gin-gonic/gin"
 
-	"github.com/gin-gonic/gin"
-)
-
-func SetupRouter(cfg *config.Config) *gin.Engine {
+func SetupRouter() *gin.Engine {
 	router := gin.Default()
-	router.GET("/api/v1/wallets/:id", HandlerGetBalance(cfg))
-	router.GET("/api/v1/wallets", HandlerGetWallets(cfg))
-	router.POST("/api/v1/wallet", HandlePostAmount(cfg))
+	router.GET("/api/v1/wallets/:id", HandlerGetBalance())
+	router.GET("/api/v1/wallets", HandlerGetWallets())
+	router.POST("/api/v1/wallet", HandlePostAmount())
 	return router
 }
