@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"wallet-app/config"
 	"wallet-app/db"
 	"wallet-app/models"
 
@@ -62,7 +61,7 @@ func CreateWallet() (*models.Wallet, error) {
 	return wallet, nil
 }
 
-func UpdateWalletBalance(cfg *config.Config, wallet *models.Wallet) error {
+func UpdateWalletBalance(wallet *models.Wallet) error {
 	conn, err := db.ConnectDatabase()
 	if err != nil {
 		return err

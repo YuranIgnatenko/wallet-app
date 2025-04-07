@@ -1,7 +1,7 @@
 package models
 
 import (
-	"errors"
+	"wallet-app/errors_app"
 
 	"github.com/google/uuid"
 )
@@ -18,18 +18,32 @@ func NewWallet() *Wallet {
 	}
 }
 
-func (wallet *Wallet) Deposit(amount float64) error {
-	if amount > 0 {
-		return errors.New("amoubnrt")
-	}
+func (wallet *Wallet) Deposit(amount float64) {
 	wallet.Balance += amount
+}
+
+func (wallet *Wallet) Withdraw(amount float64) {
+	wallet.Balance -= amount
+}
+
+func (wallet *Wallet) ValidateAmountValue(amount float64) error {
+	if amount <= 0 {
+		return errors_app.ErrorValidateAmountValue
+	}
 	return nil
 }
 
-func (wallet *Wallet) Withdraw(amount float64) error {
-	if wallet.Balance < amount {
-		return errors.New("amoubnrt")
+func (wallet *Wallet) SetOperationBalance(operation_wallet OperationWallet) error {
+	if err := wallet.ValidateAmountValue(operation_wallet.Amount); err != nil {
+		return err
 	}
-	wallet.Balance -= amount
+	switch operation_wallet.OperationType {
+	case OperationTypeDeposit:
+		wallet.Deposit(operation_wallet.Amount)
+	case OperationTypeWithdraw:
+		wallet.Withdraw(operation_wallet.Amount)
+	default:
+		return errors_app.ErrorOperationTypeValue
+	}
 	return nil
 }

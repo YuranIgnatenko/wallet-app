@@ -1,80 +1,72 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"wallet-app/config"
+	"wallet-app/errors_app"
+	"wallet-app/models"
 	"wallet-app/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func HandlePostAmount() gin.HandlerFunc {
+func HandlerOperationWallet() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var data JsonDataRequestPostWallet
-		if err := c.BindJSON(&data); err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"message": err.Error(),
-			})
+		var operation models.OperationWallet
+		var wallet *models.Wallet
+		var err error
+
+		if err = c.BindJSON(&operation); err != nil {
+			c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorParsingOperationWalletJSON))
 			return
 		}
-		wallet, err := services.GetWallet(data.WalletId)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"message": err.Error(),
-			})
+		if wallet, err = services.GetWallet(operation.WalletId); err != nil {
+			c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
 			return
 		}
-		fmt.Println(wallet, wallet.Balance, data.Amount)
-		if data.OperationType == "DEPOSIT" {
-			wallet.Deposit(data.Amount)
-		}
-		if data.OperationType == "WITHDRAW" {
-			wallet.Withdraw(data.Amount)
-		}
-		services.UpdateWalletBalance(config.AppConfig, wallet)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"message": err.Error(),
-			})
+		if err = wallet.SetOperationBalance(operation); err != nil {
+			c.JSON(http.StatusNotFound, models.NewResponseError(err))
 			return
 		}
-		c.JSON(http.StatusOK, wallet)
+		if err = services.UpdateWalletBalance(wallet); err != nil {
+			c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorUpdateWalletBalanceFromDatabase))
+			return
+		}
+		c.JSON(http.StatusOK, models.NewResponseData(wallet))
 	}
 }
 
 func HandlerGetWallets() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		wallets, err := services.GetWalletAll()
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"message": err.Error(),
-			})
+		var wallets []models.Wallet
+		var err error
+
+		if wallets, err = services.GetWalletAll(); err != nil {
+			c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
 			return
 		}
-		c.JSON(http.StatusOK, wallets)
+		c.JSON(http.StatusOK, models.NewResponseData(wallets))
 	}
 }
 
 func HandlerGetBalance() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		id_string := c.Param("id")
-		id, err := uuid.Parse(id_string)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"message": err.Error(),
-			})
+		var wallet *models.Wallet
+		var id_string string
+		var id uuid.UUID
+		var err error
+
+		id_string = c.Param("id")
+
+		if id, err = uuid.Parse(id_string); err != nil {
+			c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorIdWallet))
 			return
 		}
 
-		wallet, err := services.GetWallet(id)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"message": err.Error(),
-			})
+		if wallet, err = services.GetWallet(id); err != nil {
+			c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
 			return
 		}
-		c.JSON(http.StatusOK, wallet.Balance)
+		c.JSON(http.StatusOK, models.NewResponseData(wallet))
 	}
 }
