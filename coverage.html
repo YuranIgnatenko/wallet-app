@@ -61,7 +61,7 @@
 				
 				<option value="file2">wallet-app/config/config.go (88.2%)</option>
 				
-				<option value="file3">wallet-app/db/database.go (0.0%)</option>
+				<option value="file3">wallet-app/db/database.go (77.8%)</option>
 				
 				<option value="file4">wallet-app/main.go (0.0%)</option>
 				
@@ -71,9 +71,9 @@
 				
 				<option value="file7">wallet-app/models/wallet.go (61.5%)</option>
 				
-				<option value="file8">wallet-app/services/query_rows.go (0.0%)</option>
+				<option value="file8">wallet-app/services/query_rows.go (100.0%)</option>
 				
-				<option value="file9">wallet-app/services/wallet_service.go (0.0%)</option>
+				<option value="file9">wallet-app/services/wallet_service.go (78.3%)</option>
 				
 				</select>
 			</div>
@@ -251,7 +251,7 @@ import (
         "github.com/jackc/pgx/v4/pgxpool"
 )
 
-func ConnectDatabase() (*pgxpool.Pool, error) <span class="cov0" title="0">{
+func ConnectDatabase() (*pgxpool.Pool, error) <span class="cov8" title="1">{
         database_url := config.AppConfig.DATABASE_URL
 
         pool, err := pgxpool.Connect(context.Background(), database_url)
@@ -259,13 +259,13 @@ func ConnectDatabase() (*pgxpool.Pool, error) <span class="cov0" title="0">{
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">if err = pool.Ping(context.Background()); err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if err = pool.Ping(context.Background()); err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">return pool, nil</span>
+        <span class="cov8" title="1">return pool, nil</span>
 }
 
-func MigrationReWriteTableWallets(pool *pgxpool.Pool) error <span class="cov0" title="0">{
+func MigrationReWriteTableWallets(pool *pgxpool.Pool) error <span class="cov8" title="1">{
         var query_drop_table = fmt.Sprintf("DROP TABLE %s", config.AppConfig.DB_NAME)
         var query_create_table = fmt.Sprintf("CREATE TABLE %s (id UUID NOT NULL, balance NUMERIC(10,2) NOT NULL);", config.AppConfig.DB_NAME)
         var query_insert_to_table = fmt.Sprintf("INSERT INTO %s (id, balance) VALUES (gen_random_uuid (),50.215), (gen_random_uuid (),221.214);", config.AppConfig.DB_NAME)
@@ -278,10 +278,10 @@ func MigrationReWriteTableWallets(pool *pgxpool.Pool) error <span class="cov0" t
         if _, err = pool.Exec(ctx, query_create_table); err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
-        <span class="cov0" title="0">if _, err = pool.Exec(ctx, query_insert_to_table); err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if _, err = pool.Exec(ctx, query_insert_to_table); err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 </pre>
 		
@@ -412,14 +412,14 @@ import (
 var f = fmt.Sprintf
 
 // output string not contain params
-func QueryGetWalletAll() string <span class="cov0" title="0">{
+func QueryGetWalletAll() string <span class="cov8" title="1">{
         return f("SELECT * FROM %s ;",
                 config.AppConfig.DB_NAME)
 }</span>
 
 // output string contain param
 // $1 - id (uuid.UUID)
-func QueryGetWallet() string <span class="cov0" title="0">{
+func QueryGetWallet() string <span class="cov8" title="1">{
         return f("SELECT * FROM %s WHERE id = $1 ;",
                 config.AppConfig.DB_NAME)
 }</span>
@@ -427,7 +427,7 @@ func QueryGetWallet() string <span class="cov0" title="0">{
 // output string contain params
 // $1 - id (uuid.UUID)
 // $2 - balance (float64)
-func QueryCreateWallet() string <span class="cov0" title="0">{
+func QueryCreateWallet() string <span class="cov8" title="1">{
         return f("INSERT INTO %s (id, balance) VALUES ($1, $2) ;",
                 config.AppConfig.DB_NAME)
 }</span>
@@ -435,7 +435,7 @@ func QueryCreateWallet() string <span class="cov0" title="0">{
 // output string contain params
 // $1 - balance (float64)
 // $2 - id (uuid.UUID)
-func QueryUpdateWalletBalance() string <span class="cov0" title="0">{
+func QueryUpdateWalletBalance() string <span class="cov8" title="1">{
         return f("UPDATE %s SET balance = $1 WHERE id = $2 ;", config.AppConfig.DB_NAME)
 }</span>
 </pre>
@@ -450,79 +450,79 @@ import (
         "github.com/google/uuid"
 )
 
-func GetWalletAll() ([]*models.Wallet, error) <span class="cov0" title="0">{
+func GetWalletAll() ([]*models.Wallet, error) <span class="cov8" title="1">{
         conn, err := db.ConnectDatabase()
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">defer conn.Close()
+        <span class="cov8" title="1">defer conn.Close()
 
         rows, err := conn.Query(context.Background(), QueryGetWalletAll())
 
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">var wallets []*models.Wallet
-        for rows.Next() </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">var wallets []*models.Wallet
+        for rows.Next() </span><span class="cov8" title="1">{
                 var wallet models.Wallet
                 if err := rows.Scan(&amp;wallet.ID, &amp;wallet.Balance); err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
-                <span class="cov0" title="0">wallets = append(wallets, &amp;wallet)</span>
+                <span class="cov8" title="1">wallets = append(wallets, &amp;wallet)</span>
         }
-        <span class="cov0" title="0">return wallets, nil</span>
+        <span class="cov8" title="1">return wallets, nil</span>
 }
 
-func GetWallet(id uuid.UUID) (*models.Wallet, error) <span class="cov0" title="0">{
+func GetWallet(id uuid.UUID) (*models.Wallet, error) <span class="cov8" title="1">{
         conn, err := db.ConnectDatabase()
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">defer conn.Close()
+        <span class="cov8" title="1">defer conn.Close()
 
         var wallet models.Wallet
         err = conn.QueryRow(context.Background(), QueryGetWallet(), id).Scan(&amp;wallet.ID, &amp;wallet.Balance)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">return &amp;wallet, nil</span>
+        <span class="cov8" title="1">return &amp;wallet, nil</span>
 }
 
-func CreateWallet() (*models.Wallet, error) <span class="cov0" title="0">{
+func CreateWallet() (*models.Wallet, error) <span class="cov8" title="1">{
         conn, err := db.ConnectDatabase()
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">defer conn.Close()
+        <span class="cov8" title="1">defer conn.Close()
 
         wallet := models.NewWallet()
         _, err = conn.Exec(context.Background(), QueryCreateWallet(), wallet.ID, wallet.Balance)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">return wallet, nil</span>
+        <span class="cov8" title="1">return wallet, nil</span>
 }
 
-func CreateWalletFromData(wallet *models.Wallet) error <span class="cov0" title="0">{
+func CreateWalletFromData(wallet *models.Wallet) error <span class="cov8" title="1">{
         conn, err := db.ConnectDatabase()
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
-        <span class="cov0" title="0">defer conn.Close()
+        <span class="cov8" title="1">defer conn.Close()
 
         _, err = conn.Exec(context.Background(), QueryCreateWallet(), wallet.ID, wallet.Balance)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 
-func UpdateWalletBalance(wallet *models.Wallet) error <span class="cov0" title="0">{
+func UpdateWalletBalance(wallet *models.Wallet) error <span class="cov8" title="1">{
         conn, err := db.ConnectDatabase()
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
-        <span class="cov0" title="0">defer conn.Close()
+        <span class="cov8" title="1">defer conn.Close()
 
         _, err = conn.Exec(context.Background(), QueryUpdateWalletBalance(), &amp;wallet.Balance, &amp;wallet.ID)
         return err</span>
