@@ -25,6 +25,10 @@ var AppConfig *Config
 // Initialization variable AppConfig (type *Config)
 // for access from all code app
 func LoadConfig(namefile string) error {
+	if _, err := os.Stat(namefile); os.IsNotExist(err) {
+		return err
+	}
+
 	err := godotenv.Load(namefile)
 	if err != nil {
 		log.Fatal(err)

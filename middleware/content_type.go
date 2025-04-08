@@ -1,10 +1,10 @@
 package middleware
 
-import "net/http"
+import (
+	"github.com/gin-gonic/gin"
+)
 
-func MiddlewareContentType(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		next.ServeHTTP(w, r)
-	})
+func MiddlewareContentType(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
+	c.Next()
 }

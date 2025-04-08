@@ -8,15 +8,18 @@ import (
 )
 
 func main() {
-	if err := config.LoadConfig("config.env"); err !=nil{
+	if err := config.LoadConfig("config.env"); err != nil {
 		panic(err)
 	}
 
 	// for create table and fill test-data
 	if conn, err := db.ConnectDatabase(); err == nil {
 		defer conn.Close()
-		db.MigrationReWriteTableWallets(conn)
-	}else{
+		err = db.MigrationReWriteTableWallets(conn)
+		if err != nil{
+			log.Fatal(err)
+		}
+	} else {
 		log.Fatal(err)
 	}
 

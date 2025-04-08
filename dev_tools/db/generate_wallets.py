@@ -13,16 +13,18 @@ MAX_VALUE_BALANCE = 9999
 
 query_drop_all_wallets = f"DROP TABLE {DB_NAME};"
 query_create_table_wallets = f"CREATE TABLE {DB_NAME} (id UUID NOT NULL, balance NUMERIC(10,2) NOT NULL);"
-query_new_wallet = f"INSERT INTO {DB_NAME} (id, balance) VALUES (gen_random_uuid(), 0)"
-query_new_wallet_from_balance = lambda balance : f"INSERT INTO {DB_NAME} (id, balance) VALUES (gen_random_uuid(), {balance})"
+query_new_wallet = f"INSERT INTO {DB_NAME} (id, balance) VALUES (gen_random_uuid(), 0);"
+query_new_wallet_from_balance = lambda balance : f"INSERT INTO {DB_NAME} (id, balance) VALUES (gen_random_uuid(), {balance});"
 query_get_all_wallets = f"SELECT * FROM {DB_NAME};"
 
 # !!! DROP ALL ROWS (ALL WALLETS) FROM TABLE !!!
 def drop_all_wallets_from_database(cursor):
-	cursor.execute(query_drop_all_wallets)	
+	try:cursor.execute(query_drop_all_wallets)	
+	except:pass
 
 def create_table_wallets(cursor):
-	cursor.execute(query_create_table_wallets)	
+	try:cursor.execute(query_create_table_wallets)	
+	except:pass
 
 def print_wallets(cursor):
 	cursor.execute(query_get_all_wallets)
@@ -64,6 +66,6 @@ def generate_wallets_random_balance():
 	conn.close()
 
 def main():
-	generate_wallets_random_balance()
+	generate_wallets_empty_balance()
 
 main()
