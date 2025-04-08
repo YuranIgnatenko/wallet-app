@@ -48,3 +48,13 @@ go build cmd/main.go
 # launch application
 ./main
 ```
+
+> Testing application
+
+```bash
+./test.bat
+# visit link
+http://127.0.0.1:5500/coverage.html
+```
+
+![](/demo_screen/cover.png)
