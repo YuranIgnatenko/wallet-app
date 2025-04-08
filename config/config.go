@@ -24,11 +24,11 @@ var AppConfig *Config
 
 // Initialization variable AppConfig (type *Config)
 // for access from all code app
-func LoadConfig(namefile string) {
+func LoadConfig(namefile string) error {
 	err := godotenv.Load(namefile)
 	if err != nil {
 		log.Fatal(err)
-		panic(err)
+		return err
 	}
 
 	db_host := os.Getenv("DB_HOST")
@@ -52,4 +52,5 @@ func LoadConfig(namefile string) {
 		SERVER_PORT:  server_port,
 		SERVER_URL:   server_url,
 	}
+	return nil
 }

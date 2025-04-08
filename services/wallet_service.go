@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func GetWalletAll() ([]models.Wallet, error) {
+func GetWalletAll() ([]*models.Wallet, error) {
 	conn, err := db.ConnectDatabase()
 	if err != nil {
 		return nil, err
@@ -20,13 +20,13 @@ func GetWalletAll() ([]models.Wallet, error) {
 	if err != nil {
 		return nil, err
 	}
-	var wallets []models.Wallet
+	var wallets []*models.Wallet
 	for rows.Next() {
 		var wallet models.Wallet
 		if err := rows.Scan(&wallet.ID, &wallet.Balance); err != nil {
 			return nil, err
 		}
-		wallets = append(wallets, wallet)
+		wallets = append(wallets, &wallet)
 	}
 	return wallets, nil
 }
@@ -59,6 +59,20 @@ func CreateWallet() (*models.Wallet, error) {
 		return nil, err
 	}
 	return wallet, nil
+}
+
+func CreateWalletFromData(wallet *models.Wallet) error {
+	conn, err := db.ConnectDatabase()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	_, err = conn.Exec(context.Background(), QueryCreateWallet(), wallet.ID, wallet.Balance)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func UpdateWalletBalance(wallet *models.Wallet) error {

@@ -8,12 +8,16 @@ import (
 )
 
 func main() {
-	config.LoadConfig("config.env")
+	if err := config.LoadConfig("config.env"); err !=nil{
+		panic(err)
+	}
 
 	// for create table and fill test-data
 	if conn, err := db.ConnectDatabase(); err == nil {
 		defer conn.Close()
 		db.MigrationReWriteTableWallets(conn)
+	}else{
+		log.Fatal(err)
 	}
 
 	router := v1.SetupRouter()

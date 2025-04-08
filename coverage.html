@@ -1,0 +1,544 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>v1: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">wallet-app/api/v1/handlers.go (62.2%)</option>
+				
+				<option value="file1">wallet-app/api/v1/router.go (100.0%)</option>
+				
+				<option value="file2">wallet-app/config/config.go (86.7%)</option>
+				
+				<option value="file3">wallet-app/db/database.go (31.2%)</option>
+				
+				<option value="file4">wallet-app/main.go (0.0%)</option>
+				
+				<option value="file5">wallet-app/middleware/content_type.go (0.0%)</option>
+				
+				<option value="file6">wallet-app/models/responses.go (50.0%)</option>
+				
+				<option value="file7">wallet-app/models/wallet.go (61.5%)</option>
+				
+				<option value="file8">wallet-app/services/query_rows.go (100.0%)</option>
+				
+				<option value="file9">wallet-app/services/wallet_service.go (78.3%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package v1
+
+import (
+        "net/http"
+        "wallet-app/errors_app"
+        "wallet-app/models"
+        "wallet-app/services"
+
+        "github.com/gin-gonic/gin"
+        "github.com/google/uuid"
+)
+
+func HandlerOperationWallet() gin.HandlerFunc <span class="cov8" title="1">{
+        return func(c *gin.Context) </span><span class="cov8" title="1">{
+                var operation models.OperationWallet
+                var wallet *models.Wallet
+                var err error
+
+                if err = c.BindJSON(&amp;operation); err != nil </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorParsingOperationWalletJSON))
+                        return
+                }</span>
+                <span class="cov8" title="1">if wallet, err = services.GetWallet(operation.WalletId); err != nil </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
+                        return
+                }</span>
+                <span class="cov8" title="1">if err = wallet.SetOperationBalance(operation); err != nil </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusNotFound, models.NewResponseError(err))
+                        return
+                }</span>
+                <span class="cov8" title="1">if err = services.UpdateWalletBalance(wallet); err != nil </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorUpdateWalletBalanceFromDatabase))
+                        return
+                }</span>
+                <span class="cov8" title="1">c.JSON(http.StatusOK, models.NewResponseData(wallet))</span>
+        }
+}
+
+func HandlerGetWallets() gin.HandlerFunc <span class="cov8" title="1">{
+        return func(c *gin.Context) </span><span class="cov8" title="1">{
+                var wallets []*models.Wallet
+                var err error
+
+                if wallets, err = services.GetWalletAll(); err != nil </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
+                        return
+                }</span>
+                <span class="cov8" title="1">c.JSON(http.StatusOK, models.NewResponseData(wallets))</span>
+        }
+}
+
+func HandlerGetBalance() gin.HandlerFunc <span class="cov8" title="1">{
+        return func(c *gin.Context) </span><span class="cov8" title="1">{
+                var wallet *models.Wallet
+                var id_string string
+                var id uuid.UUID
+                var err error
+
+                id_string = c.Param("id")
+
+                if id, err = uuid.Parse(id_string); err != nil </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorIdWallet))
+                        return
+                }</span>
+
+                <span class="cov8" title="1">if wallet, err = services.GetWallet(id); err != nil </span><span class="cov0" title="0">{
+                        c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
+                        return
+                }</span>
+                <span class="cov8" title="1">c.JSON(http.StatusOK, models.NewResponseData(wallet))</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package v1
+
+import "github.com/gin-gonic/gin"
+
+func SetupRouter() *gin.Engine <span class="cov8" title="1">{
+        router := gin.Default()
+        router.GET("/api/v1/wallets/:id", HandlerGetBalance())
+        router.GET("/api/v1/wallets", HandlerGetWallets())
+        router.POST("/api/v1/wallet", HandlerOperationWallet())
+        return router
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package config
+
+import (
+        "fmt"
+        "log"
+        "os"
+
+        "github.com/joho/godotenv"
+)
+
+type Config struct {
+        DB_HOST      string
+        DB_PORT      string
+        DB_USER      string
+        DB_PASS      string
+        DB_NAME      string
+        DATABASE_URL string
+        SERVER_HOST  string
+        SERVER_PORT  string
+        SERVER_URL   string
+}
+
+var AppConfig *Config
+
+// Initialization variable AppConfig (type *Config)
+// for access from all code app
+func LoadConfig(namefile string) error <span class="cov8" title="1">{
+        err := godotenv.Load(namefile)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal(err)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">db_host := os.Getenv("DB_HOST")
+        db_port := os.Getenv("DB_PORT")
+        db_user := os.Getenv("DB_USER")
+        db_pass := os.Getenv("DB_PASS")
+        db_name := os.Getenv("DB_NAME")
+        db_url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", db_user, db_pass, db_host, db_port, db_name)
+        server_host := os.Getenv("SERVER_HOST")
+        server_port := os.Getenv("SERVER_PORT")
+        server_url := fmt.Sprintf("%s:%s", server_host, server_port)
+
+        AppConfig = &amp;Config{
+                DB_HOST:      db_host,
+                DB_PORT:      db_port,
+                DB_USER:      db_user,
+                DB_PASS:      db_pass,
+                DB_NAME:      db_name,
+                DATABASE_URL: db_url,
+                SERVER_HOST:  server_host,
+                SERVER_PORT:  server_port,
+                SERVER_URL:   server_url,
+        }
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package db
+
+import (
+        "context"
+        "wallet-app/config"
+
+        "github.com/jackc/pgx/v4/pgxpool"
+)
+
+func ConnectDatabase() (*pgxpool.Pool, error) <span class="cov8" title="1">{
+        database_url := config.AppConfig.DATABASE_URL
+
+        pool, err := pgxpool.Connect(context.Background(), database_url)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">if err = pool.Ping(context.Background()); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return pool, nil</span>
+}
+
+func MigrationReWriteTableWallets(pool *pgxpool.Pool) error <span class="cov0" title="0">{
+        var err error
+        ctx := context.Background()
+        if _, err = pool.Exec(ctx, "DROP TABLE $1;", config.AppConfig.DB_NAME); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">if _, err = pool.Exec(ctx, "CREATE TABLE $1 (id UUID NOT NULL, balance NUMERIC(10,2) NOT NULL);", config.AppConfig.DB_NAME); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">if _, err = pool.Exec(ctx, "INSERT INTO $1 (id, balance) VALUES (gen_random_uuid (),50.215), (gen_random_uuid (),221.214);", config.AppConfig.DB_NAME); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package main
+
+import (
+        "log"
+        v1 "wallet-app/api/v1"
+        "wallet-app/config"
+        "wallet-app/db"
+)
+
+func main() <span class="cov0" title="0">{
+        if err := config.LoadConfig("config.env"); err !=nil</span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+
+        // for create table and fill test-data
+        <span class="cov0" title="0">if conn, err := db.ConnectDatabase(); err == nil </span><span class="cov0" title="0">{
+                defer conn.Close()
+                db.MigrationReWriteTableWallets(conn)
+        }</span>else<span class="cov0" title="0">{
+                log.Fatal(err)
+        }</span>
+
+        <span class="cov0" title="0">router := v1.SetupRouter()
+        log.Fatal(router.Run(config.AppConfig.SERVER_URL))</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package middleware
+
+import "net/http"
+
+func MiddlewareContentType(next http.Handler) http.Handler <span class="cov0" title="0">{
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                w.Header().Set("Content-Type", "application/json")
+                next.ServeHTTP(w, r)
+        }</span>)
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package models
+
+type ResponseError struct {
+        Error string
+}
+
+func NewResponseError(err error) *ResponseError <span class="cov0" title="0">{
+        return &amp;ResponseError{
+                Error: err.Error(),
+        }
+}</span>
+
+type ResponseData struct {
+        Data interface{}
+}
+
+func NewResponseData(data interface{}) *ResponseData <span class="cov8" title="1">{
+        return &amp;ResponseData{
+                Data: data,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package models
+
+import (
+        "wallet-app/errors_app"
+
+        "github.com/google/uuid"
+)
+
+type Wallet struct {
+        ID      uuid.UUID `json:"id"`
+        Balance float64   `json:"balance"`
+}
+
+func NewWallet() *Wallet <span class="cov8" title="1">{
+        return &amp;Wallet{
+                ID:      uuid.New(),
+                Balance: 0,
+        }
+}</span>
+
+func (wallet *Wallet) Deposit(amount float64) <span class="cov8" title="1">{
+        wallet.Balance += amount
+}</span>
+
+func (wallet *Wallet) Withdraw(amount float64) <span class="cov0" title="0">{
+        wallet.Balance -= amount
+}</span>
+
+func (wallet *Wallet) ValidateAmountValue(amount float64) error <span class="cov8" title="1">{
+        if amount &lt;= 0 </span><span class="cov0" title="0">{
+                return errors_app.ErrorValidateAmountValue
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (wallet *Wallet) SetOperationBalance(operation_wallet OperationWallet) error <span class="cov8" title="1">{
+        if err := wallet.ValidateAmountValue(operation_wallet.Amount); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="1">switch operation_wallet.OperationType </span>{
+        case OperationTypeDeposit:<span class="cov8" title="1">
+                wallet.Deposit(operation_wallet.Amount)</span>
+        case OperationTypeWithdraw:<span class="cov0" title="0">
+                wallet.Withdraw(operation_wallet.Amount)</span>
+        default:<span class="cov0" title="0">
+                return errors_app.ErrorOperationTypeValue</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package services
+
+import (
+        "fmt"
+        "wallet-app/config"
+)
+
+// short func for readble
+var f = fmt.Sprintf
+
+// output string not contain params
+func QueryGetWalletAll() string <span class="cov8" title="1">{
+        return f("SELECT * FROM %s ;",
+                config.AppConfig.DB_NAME)
+}</span>
+
+// output string contain param
+// $1 - id (uuid.UUID)
+func QueryGetWallet() string <span class="cov8" title="1">{
+        return f("SELECT * FROM %s WHERE id = $1 ;",
+                config.AppConfig.DB_NAME)
+}</span>
+
+// output string contain params
+// $1 - id (uuid.UUID)
+// $2 - balance (float64)
+func QueryCreateWallet() string <span class="cov8" title="1">{
+        return f("INSERT INTO %s (id, balance) VALUES ($1, $2) ;",
+                config.AppConfig.DB_NAME)
+}</span>
+
+// output string contain params
+// $1 - balance (float64)
+// $2 - id (uuid.UUID)
+func QueryUpdateWalletBalance() string <span class="cov8" title="1">{
+        return f("UPDATE %s SET balance = $1 WHERE id = $2 ;", config.AppConfig.DB_NAME)
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package services
+
+import (
+        "context"
+        "wallet-app/db"
+        "wallet-app/models"
+
+        "github.com/google/uuid"
+)
+
+func GetWalletAll() ([]*models.Wallet, error) <span class="cov8" title="1">{
+        conn, err := db.ConnectDatabase()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer conn.Close()
+
+        rows, err := conn.Query(context.Background(), QueryGetWalletAll())
+
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">var wallets []*models.Wallet
+        for rows.Next() </span><span class="cov8" title="1">{
+                var wallet models.Wallet
+                if err := rows.Scan(&amp;wallet.ID, &amp;wallet.Balance); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">wallets = append(wallets, &amp;wallet)</span>
+        }
+        <span class="cov8" title="1">return wallets, nil</span>
+}
+
+func GetWallet(id uuid.UUID) (*models.Wallet, error) <span class="cov8" title="1">{
+        conn, err := db.ConnectDatabase()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer conn.Close()
+
+        var wallet models.Wallet
+        err = conn.QueryRow(context.Background(), QueryGetWallet(), id).Scan(&amp;wallet.ID, &amp;wallet.Balance)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return &amp;wallet, nil</span>
+}
+
+func CreateWallet() (*models.Wallet, error) <span class="cov8" title="1">{
+        conn, err := db.ConnectDatabase()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer conn.Close()
+
+        wallet := models.NewWallet()
+        _, err = conn.Exec(context.Background(), QueryCreateWallet(), wallet.ID, wallet.Balance)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return wallet, nil</span>
+}
+
+func CreateWalletFromData(wallet *models.Wallet) error <span class="cov8" title="1">{
+        conn, err := db.ConnectDatabase()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="1">defer conn.Close()
+
+        _, err = conn.Exec(context.Background(), QueryCreateWallet(), wallet.ID, wallet.Balance)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+func UpdateWalletBalance(wallet *models.Wallet) error <span class="cov8" title="1">{
+        conn, err := db.ConnectDatabase()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="1">defer conn.Close()
+
+        _, err = conn.Exec(context.Background(), QueryUpdateWalletBalance(), &amp;wallet.Balance, &amp;wallet.ID)
+        return err</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

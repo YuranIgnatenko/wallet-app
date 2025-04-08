@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   db:
-    image: postgres:13
+    image: postgres13
     environment:
       POSTGRES_PASSWORD: postgres9872
       POSTGRES_USER: postgres
@@ -14,7 +12,7 @@ services:
   app:
     build: .
     environment:
-      DATABASE_URL: "host=go_db user=postgres password=postgres9872 dbname=wallets sslmode=disable"
+      DATABASE_URL: "host=localhost user=postgres password=postgres9872 dbname=wallets sslmode=disable"
     ports:
       - "8080:8080"
     depends_on:

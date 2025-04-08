@@ -38,7 +38,7 @@ func HandlerOperationWallet() gin.HandlerFunc {
 
 func HandlerGetWallets() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var wallets []models.Wallet
+		var wallets []*models.Wallet
 		var err error
 
 		if wallets, err = services.GetWalletAll(); err != nil {
