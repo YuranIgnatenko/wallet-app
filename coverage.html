@@ -67,9 +67,9 @@
 				
 				<option value="file5">wallet-app/middleware/content_type.go (100.0%)</option>
 				
-				<option value="file6">wallet-app/models/responses.go (50.0%)</option>
+				<option value="file6">wallet-app/models/responses.go (0.0%)</option>
 				
-				<option value="file7">wallet-app/models/wallet.go (61.5%)</option>
+				<option value="file7">wallet-app/models/wallet.go (92.3%)</option>
 				
 				<option value="file8">wallet-app/services/query_rows.go (100.0%)</option>
 				
@@ -343,7 +343,7 @@ type ResponseData struct {
         Data interface{}
 }
 
-func NewResponseData(data interface{}) *ResponseData <span class="cov8" title="1">{
+func NewResponseData(data interface{}) *ResponseData <span class="cov0" title="0">{
         return &amp;ResponseData{
                 Data: data,
         }
@@ -374,12 +374,12 @@ func (wallet *Wallet) Deposit(amount float64) <span class="cov8" title="1">{
         wallet.Balance += amount
 }</span>
 
-func (wallet *Wallet) Withdraw(amount float64) <span class="cov0" title="0">{
+func (wallet *Wallet) Withdraw(amount float64) <span class="cov8" title="1">{
         wallet.Balance -= amount
 }</span>
 
 func (wallet *Wallet) ValidateAmountValue(amount float64) error <span class="cov8" title="1">{
-        if amount &lt;= 0 </span><span class="cov0" title="0">{
+        if amount &lt;= 0 </span><span class="cov8" title="1">{
                 return errors_app.ErrorValidateAmountValue
         }</span>
         <span class="cov8" title="1">return nil</span>
@@ -392,9 +392,9 @@ func (wallet *Wallet) SetOperationBalance(operation_wallet OperationWallet) erro
         <span class="cov8" title="1">switch operation_wallet.OperationType </span>{
         case OperationTypeDeposit:<span class="cov8" title="1">
                 wallet.Deposit(operation_wallet.Amount)</span>
-        case OperationTypeWithdraw:<span class="cov0" title="0">
+        case OperationTypeWithdraw:<span class="cov8" title="1">
                 wallet.Withdraw(operation_wallet.Amount)</span>
-        default:<span class="cov0" title="0">
+        default:<span class="cov8" title="1">
                 return errors_app.ErrorOperationTypeValue</span>
         }
         <span class="cov8" title="1">return nil</span>
