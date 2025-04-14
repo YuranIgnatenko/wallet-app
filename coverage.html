@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">wallet-app/api/v1/handlers.go (62.2%)</option>
+				<option value="file0">wallet-app/api/v1/handlers.go (63.2%)</option>
 				
 				<option value="file1">wallet-app/api/v1/router.go (100.0%)</option>
 				
@@ -73,7 +73,7 @@
 				
 				<option value="file8">wallet-app/services/query_rows.go (100.0%)</option>
 				
-				<option value="file9">wallet-app/services/wallet_service.go (78.3%)</option>
+				<option value="file9">wallet-app/services/wallet_service.go (78.7%)</option>
 				
 				</select>
 			</div>
@@ -97,9 +97,20 @@ import (
 
         "github.com/gin-gonic/gin"
         "github.com/google/uuid"
+        "github.com/jackc/pgx/v4/pgxpool"
 )
 
-func HandlerOperationWallet() gin.HandlerFunc <span class="cov8" title="1">{
+type WalletHandler struct {
+        walletService *services.WalletService
+}
+
+func NewWalletHandler(poolConnection *pgxpool.Pool) *WalletHandler <span class="cov8" title="1">{
+        return &amp;WalletHandler{
+                walletService: services.NewWalletService(poolConnection),
+        }
+}</span>
+
+func (walletHandler *WalletHandler) OperationWallet() gin.HandlerFunc <span class="cov8" title="1">{
         return func(c *gin.Context) </span><span class="cov8" title="1">{
                 var operation models.OperationWallet
                 var wallet *models.Wallet
@@ -109,7 +120,7 @@ func HandlerOperationWallet() gin.HandlerFunc <span class="cov8" title="1">{
                         c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorParsingOperationWalletJSON))
                         return
                 }</span>
-                <span class="cov8" title="1">if wallet, err = services.GetWallet(operation.WalletId); err != nil </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if wallet, err = walletHandler.walletService.GetWallet(operation.WalletId); err != nil </span><span class="cov0" title="0">{
                         c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
                         return
                 }</span>
@@ -117,7 +128,7 @@ func HandlerOperationWallet() gin.HandlerFunc <span class="cov8" title="1">{
                         c.JSON(http.StatusNotFound, models.NewResponseError(err))
                         return
                 }</span>
-                <span class="cov8" title="1">if err = services.UpdateWalletBalance(wallet); err != nil </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if err = walletHandler.walletService.UpdateWalletBalance(wallet); err != nil </span><span class="cov0" title="0">{
                         c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorUpdateWalletBalanceFromDatabase))
                         return
                 }</span>
@@ -125,12 +136,12 @@ func HandlerOperationWallet() gin.HandlerFunc <span class="cov8" title="1">{
         }
 }
 
-func HandlerGetWallets() gin.HandlerFunc <span class="cov8" title="1">{
+func (walletHandler *WalletHandler) GetWallets() gin.HandlerFunc <span class="cov8" title="1">{
         return func(c *gin.Context) </span><span class="cov8" title="1">{
                 var wallets []*models.Wallet
                 var err error
 
-                if wallets, err = services.GetWalletAll(); err != nil </span><span class="cov0" title="0">{
+                if wallets, err = walletHandler.walletService.GetWalletAll(); err != nil </span><span class="cov0" title="0">{
                         c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
                         return
                 }</span>
@@ -138,7 +149,7 @@ func HandlerGetWallets() gin.HandlerFunc <span class="cov8" title="1">{
         }
 }
 
-func HandlerGetBalance() gin.HandlerFunc <span class="cov8" title="1">{
+func (walletHandler *WalletHandler) GetBalance() gin.HandlerFunc <span class="cov8" title="1">{
         return func(c *gin.Context) </span><span class="cov8" title="1">{
                 var wallet *models.Wallet
                 var id_string string
@@ -152,7 +163,7 @@ func HandlerGetBalance() gin.HandlerFunc <span class="cov8" title="1">{
                         return
                 }</span>
 
-                <span class="cov8" title="1">if wallet, err = services.GetWallet(id); err != nil </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if wallet, err = walletHandler.walletService.GetWallet(id); err != nil </span><span class="cov0" title="0">{
                         c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
                         return
                 }</span>
@@ -167,14 +178,16 @@ import (
         "wallet-app/middleware"
 
         "github.com/gin-gonic/gin"
+        "github.com/jackc/pgx/v4/pgxpool"
 )
 
-func SetupRouter() *gin.Engine <span class="cov8" title="1">{
+func SetupRouter(poolConnection *pgxpool.Pool) *gin.Engine <span class="cov8" title="1">{
         router := gin.Default()
         router.Use(middleware.MiddlewareContentType)
-        router.GET("/api/v1/wallets/:id", HandlerGetBalance())
-        router.GET("/api/v1/wallets", HandlerGetWallets())
-        router.POST("/api/v1/wallet", HandlerOperationWallet())
+        walletHandler := NewWalletHandler(poolConnection)
+        router.GET("/api/v1/wallets/:id", walletHandler.GetBalance())
+        router.GET("/api/v1/wallets", walletHandler.GetWallets())
+        router.POST("/api/v1/wallet", walletHandler.OperationWallet())
         return router
 }</span>
 </pre>
@@ -292,25 +305,29 @@ import (
         v1 "wallet-app/api/v1"
         "wallet-app/config"
         "wallet-app/db"
+
+        "github.com/jackc/pgx/v4/pgxpool"
 )
+
+var poolConnection *pgxpool.Pool
 
 func main() <span class="cov0" title="0">{
         if err := config.LoadConfig("config.env"); err != nil </span><span class="cov0" title="0">{
                 panic(err)</span>
         }
 
-        // for create table and fill test-data
-        <span class="cov0" title="0">if conn, err := db.ConnectDatabase(); err == nil </span><span class="cov0" title="0">{
-                defer conn.Close()
-                err = db.MigrationReWriteTableWallets(conn)
-                if err != nil</span><span class="cov0" title="0">{
-                        log.Fatal(err)
-                }</span>
-        } else<span class="cov0" title="0"> {
+        <span class="cov0" title="0">poolConnection, err := db.ConnectDatabase()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal(err)
+        }</span>
+        <span class="cov0" title="0">defer poolConnection.Close()
+
+        err = db.MigrationReWriteTableWallets(poolConnection)
+        if err != nil </span><span class="cov0" title="0">{
                 log.Fatal(err)
         }</span>
 
-        <span class="cov0" title="0">router := v1.SetupRouter()
+        <span class="cov0" title="0">router := v1.SetupRouter(poolConnection)
         log.Fatal(router.Run(config.AppConfig.SERVER_URL))</span>
 }
 </pre>
@@ -448,9 +465,20 @@ import (
         "wallet-app/models"
 
         "github.com/google/uuid"
+        "github.com/jackc/pgx/v4/pgxpool"
 )
 
-func GetWalletAll() ([]*models.Wallet, error) <span class="cov8" title="1">{
+type WalletService struct {
+        poolConnection *pgxpool.Pool
+}
+
+func NewWalletService(poolConnection *pgxpool.Pool) *WalletService <span class="cov8" title="1">{
+        return &amp;WalletService{
+                poolConnection: poolConnection,
+        }
+}</span>
+
+func (walletService *WalletService) GetWalletAll() ([]*models.Wallet, error) <span class="cov8" title="1">{
         conn, err := db.ConnectDatabase()
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
@@ -473,7 +501,7 @@ func GetWalletAll() ([]*models.Wallet, error) <span class="cov8" title="1">{
         <span class="cov8" title="1">return wallets, nil</span>
 }
 
-func GetWallet(id uuid.UUID) (*models.Wallet, error) <span class="cov8" title="1">{
+func (walletService *WalletService) GetWallet(id uuid.UUID) (*models.Wallet, error) <span class="cov8" title="1">{
         conn, err := db.ConnectDatabase()
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
@@ -488,7 +516,7 @@ func GetWallet(id uuid.UUID) (*models.Wallet, error) <span class="cov8" title="1
         <span class="cov8" title="1">return &amp;wallet, nil</span>
 }
 
-func CreateWallet() (*models.Wallet, error) <span class="cov8" title="1">{
+func (walletService *WalletService) CreateWallet() (*models.Wallet, error) <span class="cov8" title="1">{
         conn, err := db.ConnectDatabase()
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
@@ -503,7 +531,7 @@ func CreateWallet() (*models.Wallet, error) <span class="cov8" title="1">{
         <span class="cov8" title="1">return wallet, nil</span>
 }
 
-func CreateWalletFromData(wallet *models.Wallet) error <span class="cov8" title="1">{
+func (walletService *WalletService) CreateWalletFromData(wallet *models.Wallet) error <span class="cov8" title="1">{
         conn, err := db.ConnectDatabase()
         if err != nil </span><span class="cov0" title="0">{
                 return err
@@ -517,7 +545,7 @@ func CreateWalletFromData(wallet *models.Wallet) error <span class="cov8" title=
         <span class="cov8" title="1">return nil</span>
 }
 
-func UpdateWalletBalance(wallet *models.Wallet) error <span class="cov8" title="1">{
+func (walletService *WalletService) UpdateWalletBalance(wallet *models.Wallet) error <span class="cov8" title="1">{
         conn, err := db.ConnectDatabase()
         if err != nil </span><span class="cov0" title="0">{
                 return err

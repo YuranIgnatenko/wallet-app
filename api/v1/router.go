@@ -4,13 +4,15 @@ import (
 	"wallet-app/middleware"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func SetupRouter() *gin.Engine {
+func SetupRouter(poolConnection *pgxpool.Pool) *gin.Engine {
 	router := gin.Default()
 	router.Use(middleware.MiddlewareContentType)
-	router.GET("/api/v1/wallets/:id", HandlerGetBalance())
-	router.GET("/api/v1/wallets", HandlerGetWallets())
-	router.POST("/api/v1/wallet", HandlerOperationWallet())
+	walletHandler := NewWalletHandler(poolConnection)
+	router.GET("/api/v1/wallets/:id", walletHandler.GetBalance())
+	router.GET("/api/v1/wallets", walletHandler.GetWallets())
+	router.POST("/api/v1/wallet", walletHandler.OperationWallet())
 	return router
 }

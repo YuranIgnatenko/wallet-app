@@ -6,9 +6,20 @@ import (
 	"wallet-app/models"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func GetWalletAll() ([]*models.Wallet, error) {
+type WalletService struct {
+	poolConnection *pgxpool.Pool
+}
+
+func NewWalletService(poolConnection *pgxpool.Pool) *WalletService {
+	return &WalletService{
+		poolConnection: poolConnection,
+	}
+}
+
+func (walletService *WalletService) GetWalletAll() ([]*models.Wallet, error) {
 	conn, err := db.ConnectDatabase()
 	if err != nil {
 		return nil, err
@@ -31,7 +42,7 @@ func GetWalletAll() ([]*models.Wallet, error) {
 	return wallets, nil
 }
 
-func GetWallet(id uuid.UUID) (*models.Wallet, error) {
+func (walletService *WalletService) GetWallet(id uuid.UUID) (*models.Wallet, error) {
 	conn, err := db.ConnectDatabase()
 	if err != nil {
 		return nil, err
@@ -46,7 +57,7 @@ func GetWallet(id uuid.UUID) (*models.Wallet, error) {
 	return &wallet, nil
 }
 
-func CreateWallet() (*models.Wallet, error) {
+func (walletService *WalletService) CreateWallet() (*models.Wallet, error) {
 	conn, err := db.ConnectDatabase()
 	if err != nil {
 		return nil, err
@@ -61,7 +72,7 @@ func CreateWallet() (*models.Wallet, error) {
 	return wallet, nil
 }
 
-func CreateWalletFromData(wallet *models.Wallet) error {
+func (walletService *WalletService) CreateWalletFromData(wallet *models.Wallet) error {
 	conn, err := db.ConnectDatabase()
 	if err != nil {
 		return err
@@ -75,7 +86,7 @@ func CreateWalletFromData(wallet *models.Wallet) error {
 	return nil
 }
 
-func UpdateWalletBalance(wallet *models.Wallet) error {
+func (walletService *WalletService) UpdateWalletBalance(wallet *models.Wallet) error {
 	conn, err := db.ConnectDatabase()
 	if err != nil {
 		return err

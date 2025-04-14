@@ -8,9 +8,20 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func HandlerOperationWallet() gin.HandlerFunc {
+type WalletHandler struct {
+	walletService *services.WalletService
+}
+
+func NewWalletHandler(poolConnection *pgxpool.Pool) *WalletHandler {
+	return &WalletHandler{
+		walletService: services.NewWalletService(poolConnection),
+	}
+}
+
+func (walletHandler *WalletHandler) OperationWallet() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var operation models.OperationWallet
 		var wallet *models.Wallet
@@ -20,7 +31,7 @@ func HandlerOperationWallet() gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorParsingOperationWalletJSON))
 			return
 		}
-		if wallet, err = services.GetWallet(operation.WalletId); err != nil {
+		if wallet, err = walletHandler.walletService.GetWallet(operation.WalletId); err != nil {
 			c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
 			return
 		}
@@ -28,7 +39,7 @@ func HandlerOperationWallet() gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, models.NewResponseError(err))
 			return
 		}
-		if err = services.UpdateWalletBalance(wallet); err != nil {
+		if err = walletHandler.walletService.UpdateWalletBalance(wallet); err != nil {
 			c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorUpdateWalletBalanceFromDatabase))
 			return
 		}
@@ -36,12 +47,12 @@ func HandlerOperationWallet() gin.HandlerFunc {
 	}
 }
 
-func HandlerGetWallets() gin.HandlerFunc {
+func (walletHandler *WalletHandler) GetWallets() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var wallets []*models.Wallet
 		var err error
 
-		if wallets, err = services.GetWalletAll(); err != nil {
+		if wallets, err = walletHandler.walletService.GetWalletAll(); err != nil {
 			c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
 			return
 		}
@@ -49,7 +60,7 @@ func HandlerGetWallets() gin.HandlerFunc {
 	}
 }
 
-func HandlerGetBalance() gin.HandlerFunc {
+func (walletHandler *WalletHandler) GetBalance() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var wallet *models.Wallet
 		var id_string string
@@ -63,7 +74,7 @@ func HandlerGetBalance() gin.HandlerFunc {
 			return
 		}
 
-		if wallet, err = services.GetWallet(id); err != nil {
+		if wallet, err = walletHandler.walletService.GetWallet(id); err != nil {
 			c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
 			return
 		}

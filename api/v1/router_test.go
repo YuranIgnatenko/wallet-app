@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 	"wallet-app/config"
+	"wallet-app/db"
 	"wallet-app/models"
 	"wallet-app/services"
 
@@ -33,11 +34,15 @@ func TestRouteGetBalance(t *testing.T) {
 			Balance: 0,
 		}, "GET", "/api/v1/wallets/", 200},
 	}
-
-	router := SetupRouter()
+	pool, err := db.ConnectDatabase()
+	if err != nil {
+		t.Error(err)
+	}
+	router := SetupRouter(pool)
+	walletService := services.NewWalletService(pool)
 
 	for _, tcase := range testCases {
-		err := services.CreateWalletFromData(tcase.wallet)
+		err := walletService.CreateWalletFromData(tcase.wallet)
 		if err != nil {
 			t.Error(err)
 		}
@@ -53,8 +58,12 @@ func TestRouteGetBalance(t *testing.T) {
 }
 
 func TestRouteGetWallets(t *testing.T) {
-
-	router := SetupRouter()
+	pool, err := db.ConnectDatabase()
+	if err != nil {
+		t.Error(err)
+	}
+	router := SetupRouter(pool)
+	walletService := services.NewWalletService(pool)
 
 	r, err := http.NewRequest("GET", "/api/v1/wallets", nil)
 	if err != nil {
@@ -69,7 +78,7 @@ func TestRouteGetWallets(t *testing.T) {
 		t.Error(err, w.Code)
 	}
 
-	_, err = services.GetWalletAll()
+	_, err = walletService.GetWalletAll()
 	if err != nil {
 		t.Error(err)
 	}
@@ -80,8 +89,15 @@ func TestRouteGetWallets(t *testing.T) {
 }
 
 func TestRouteOperationWallet(t *testing.T) {
+	pool, err := db.ConnectDatabase()
+	if err != nil {
+		t.Error(err)
+	}
+	router := SetupRouter(pool)
+	walletService := services.NewWalletService(pool)
+
 	tested_amount_deposit := 0.1
-	tested_wallet, err := services.CreateWallet()
+	tested_wallet, err := walletService.CreateWallet()
 	if err != nil {
 		t.Error(err)
 	}
@@ -96,8 +112,6 @@ func TestRouteOperationWallet(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
-	router := SetupRouter()
 
 	r, err := http.NewRequest("POST", "/api/v1/wallet", bytes.NewBuffer(request_data_json))
 	if err != nil {
@@ -114,7 +128,7 @@ func TestRouteOperationWallet(t *testing.T) {
 
 	// rewrite variable for
 	// updating balance (get wallet from database)
-	tested_wallet, err = services.GetWallet(tested_wallet.ID)
+	tested_wallet, err = walletService.GetWallet(tested_wallet.ID)
 	if err != nil {
 		t.Error(err)
 	}
