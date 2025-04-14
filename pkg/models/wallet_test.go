@@ -2,7 +2,7 @@ package models
 
 import (
 	"testing"
-	"wallet-app/errors_app"
+	"wallet-app/errors"
 
 	"github.com/google/uuid"
 )
@@ -53,8 +53,8 @@ func TestValidateAmountValue(t *testing.T) {
 		result error
 	}{
 		{1, nil},
-		{0, errors_app.ErrorValidateAmountValue},
-		{-999, errors_app.ErrorValidateAmountValue},
+		{0, errors.ErrorValidateAmountValue},
+		{-999, errors.ErrorValidateAmountValue},
 	}
 	wallet := NewWallet()
 
