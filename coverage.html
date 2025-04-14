@@ -3,7 +3,7 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>v1: Go Coverage Report</title>
+		<title>cmd: Go Coverage Report</title>
 		<style>
 			body {
 				background: black;
@@ -55,25 +55,19 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">wallet-app/api/v1/handlers.go (63.2%)</option>
+				<option value="file0">wallet-app/cmd/main.go (0.0%)</option>
 				
-				<option value="file1">wallet-app/api/v1/router.go (100.0%)</option>
+				<option value="file1">wallet-app/config/config.go (89.5%)</option>
 				
-				<option value="file2">wallet-app/config/config.go (88.2%)</option>
+				<option value="file2">wallet-app/internal/logger/logger.go (0.0%)</option>
 				
-				<option value="file3">wallet-app/db/database.go (77.8%)</option>
+				<option value="file3">wallet-app/internal/middleware/content_type.go (0.0%)</option>
 				
-				<option value="file4">wallet-app/main.go (0.0%)</option>
+				<option value="file4">wallet-app/internal/utils/queries_utils.go (0.0%)</option>
 				
-				<option value="file5">wallet-app/middleware/content_type.go (100.0%)</option>
+				<option value="file5">wallet-app/pkg/models/responses.go (0.0%)</option>
 				
-				<option value="file6">wallet-app/models/responses.go (0.0%)</option>
-				
-				<option value="file7">wallet-app/models/wallet.go (92.3%)</option>
-				
-				<option value="file8">wallet-app/services/query_rows.go (100.0%)</option>
-				
-				<option value="file9">wallet-app/services/wallet_service.go (78.7%)</option>
+				<option value="file6">wallet-app/pkg/models/wallet.go (92.3%)</option>
 				
 				</select>
 			</div>
@@ -87,112 +81,41 @@
 		</div>
 		<div id="content">
 		
-		<pre class="file" id="file0" style="display: none">package v1
+		<pre class="file" id="file0" style="display: none">package main
 
 import (
-        "net/http"
-        "wallet-app/errors_app"
-        "wallet-app/models"
-        "wallet-app/services"
-
-        "github.com/gin-gonic/gin"
-        "github.com/google/uuid"
-        "github.com/jackc/pgx/v4/pgxpool"
+        "wallet-app/config"
+        "wallet-app/db"
+        v1 "wallet-app/internal/api/v1"
+        "wallet-app/internal/logger"
 )
 
-type WalletHandler struct {
-        walletService *services.WalletService
-}
-
-func NewWalletHandler(poolConnection *pgxpool.Pool) *WalletHandler <span class="cov8" title="1">{
-        return &amp;WalletHandler{
-                walletService: services.NewWalletService(poolConnection),
+func main() <span class="cov0" title="0">{
+        if err := config.LoadConfig("config.env"); err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
         }
-}</span>
 
-func (walletHandler *WalletHandler) OperationWallet() gin.HandlerFunc <span class="cov8" title="1">{
-        return func(c *gin.Context) </span><span class="cov8" title="1">{
-                var operation models.OperationWallet
-                var wallet *models.Wallet
-                var err error
+        <span class="cov0" title="0">logger.InitLogger()
+        logger.Log.Info("Starting wallet-app")
 
-                if err = c.BindJSON(&amp;operation); err != nil </span><span class="cov0" title="0">{
-                        c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorParsingOperationWalletJSON))
-                        return
-                }</span>
-                <span class="cov8" title="1">if wallet, err = walletHandler.walletService.GetWallet(operation.WalletId); err != nil </span><span class="cov0" title="0">{
-                        c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
-                        return
-                }</span>
-                <span class="cov8" title="1">if err = wallet.SetOperationBalance(operation); err != nil </span><span class="cov0" title="0">{
-                        c.JSON(http.StatusNotFound, models.NewResponseError(err))
-                        return
-                }</span>
-                <span class="cov8" title="1">if err = walletHandler.walletService.UpdateWalletBalance(wallet); err != nil </span><span class="cov0" title="0">{
-                        c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorUpdateWalletBalanceFromDatabase))
-                        return
-                }</span>
-                <span class="cov8" title="1">c.JSON(http.StatusOK, models.NewResponseData(wallet))</span>
+        poolConnection, err := db.ConnectDatabase()
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Log.Fatalf("Error connecting db, err:%s", err.Error())
+                panic(err)</span>
         }
-}
+        <span class="cov0" title="0">defer poolConnection.Close()
 
-func (walletHandler *WalletHandler) GetWallets() gin.HandlerFunc <span class="cov8" title="1">{
-        return func(c *gin.Context) </span><span class="cov8" title="1">{
-                var wallets []*models.Wallet
-                var err error
+        err = db.MigrationReWriteTableWallets(poolConnection)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Log.Fatalf("Error migration db, err:%s", err.Error())
+        }</span>
 
-                if wallets, err = walletHandler.walletService.GetWalletAll(); err != nil </span><span class="cov0" title="0">{
-                        c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
-                        return
-                }</span>
-                <span class="cov8" title="1">c.JSON(http.StatusOK, models.NewResponseData(wallets))</span>
-        }
-}
-
-func (walletHandler *WalletHandler) GetBalance() gin.HandlerFunc <span class="cov8" title="1">{
-        return func(c *gin.Context) </span><span class="cov8" title="1">{
-                var wallet *models.Wallet
-                var id_string string
-                var id uuid.UUID
-                var err error
-
-                id_string = c.Param("id")
-
-                if id, err = uuid.Parse(id_string); err != nil </span><span class="cov0" title="0">{
-                        c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorIdWallet))
-                        return
-                }</span>
-
-                <span class="cov8" title="1">if wallet, err = walletHandler.walletService.GetWallet(id); err != nil </span><span class="cov0" title="0">{
-                        c.JSON(http.StatusNotFound, models.NewResponseError(errors_app.ErrorGetWalletFromDatabase))
-                        return
-                }</span>
-                <span class="cov8" title="1">c.JSON(http.StatusOK, models.NewResponseData(wallet))</span>
-        }
+        <span class="cov0" title="0">router := v1.SetupRouter(poolConnection)
+        logger.Log.Fatal(router.Run(config.AppConfig.SERVER_URL))</span>
 }
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package v1
-
-import (
-        "wallet-app/middleware"
-
-        "github.com/gin-gonic/gin"
-        "github.com/jackc/pgx/v4/pgxpool"
-)
-
-func SetupRouter(poolConnection *pgxpool.Pool) *gin.Engine <span class="cov8" title="1">{
-        router := gin.Default()
-        router.Use(middleware.MiddlewareContentType)
-        walletHandler := NewWalletHandler(poolConnection)
-        router.GET("/api/v1/wallets/:id", walletHandler.GetBalance())
-        router.GET("/api/v1/wallets", walletHandler.GetWallets())
-        router.POST("/api/v1/wallet", walletHandler.OperationWallet())
-        return router
-}</span>
-</pre>
-		
-		<pre class="file" id="file2" style="display: none">package config
+		<pre class="file" id="file1" style="display: none">package config
 
 import (
         "fmt"
@@ -212,6 +135,8 @@ type Config struct {
         SERVER_HOST  string
         SERVER_PORT  string
         SERVER_URL   string
+        LOG_LEVEL    string
+        LOG_FILENAME string
 }
 
 var AppConfig *Config
@@ -238,6 +163,8 @@ func LoadConfig(namefile string) error <span class="cov8" title="1">{
         server_host := os.Getenv("SERVER_HOST")
         server_port := os.Getenv("SERVER_PORT")
         server_url := fmt.Sprintf("%s:%s", server_host, server_port)
+        log_level := os.Getenv("LOG_LEVEL")
+        log_filename := os.Getenv("LOG_FILENAME")
 
         AppConfig = &amp;Config{
                 DB_HOST:      db_host,
@@ -249,102 +176,76 @@ func LoadConfig(namefile string) error <span class="cov8" title="1">{
                 SERVER_HOST:  server_host,
                 SERVER_PORT:  server_port,
                 SERVER_URL:   server_url,
+                LOG_LEVEL:    log_level,
+                LOG_FILENAME: log_filename,
         }
         return nil</span>
 }
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package db
-
-import (
-        "context"
-        "fmt"
-        "wallet-app/config"
-
-        "github.com/jackc/pgx/v4/pgxpool"
-)
-
-func ConnectDatabase() (*pgxpool.Pool, error) <span class="cov8" title="1">{
-        database_url := config.AppConfig.DATABASE_URL
-
-        pool, err := pgxpool.Connect(context.Background(), database_url)
-
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">if err = pool.Ping(context.Background()); err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">return pool, nil</span>
-}
-
-func MigrationReWriteTableWallets(pool *pgxpool.Pool) error <span class="cov8" title="1">{
-        var query_drop_table = fmt.Sprintf("DROP TABLE %s", config.AppConfig.DB_NAME)
-        var query_create_table = fmt.Sprintf("CREATE TABLE %s (id UUID NOT NULL, balance NUMERIC(10,2) NOT NULL);", config.AppConfig.DB_NAME)
-        var query_insert_to_table = fmt.Sprintf("INSERT INTO %s (id, balance) VALUES (gen_random_uuid (),50.215), (gen_random_uuid (),221.214);", config.AppConfig.DB_NAME)
-
-        var err error
-        ctx := context.Background()
-
-        pool.Exec(ctx, query_drop_table)
-
-        if _, err = pool.Exec(ctx, query_create_table); err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span>
-        <span class="cov8" title="1">if _, err = pool.Exec(ctx, query_insert_to_table); err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span>
-        <span class="cov8" title="1">return nil</span>
-}
-</pre>
-		
-		<pre class="file" id="file4" style="display: none">package main
+		<pre class="file" id="file2" style="display: none">package logger
 
 import (
         "log"
-        v1 "wallet-app/api/v1"
+        "os"
         "wallet-app/config"
-        "wallet-app/db"
 
-        "github.com/jackc/pgx/v4/pgxpool"
+        "github.com/sirupsen/logrus"
 )
 
-var poolConnection *pgxpool.Pool
+var Log *logrus.Logger
 
-func main() <span class="cov0" title="0">{
-        if err := config.LoadConfig("config.env"); err != nil </span><span class="cov0" title="0">{
-                panic(err)</span>
-        }
-
-        <span class="cov0" title="0">poolConnection, err := db.ConnectDatabase()
+func InitLogger() <span class="cov0" title="0">{
+        Log = logrus.New()
+        logfile, err := os.OpenFile(config.AppConfig.LOG_FILENAME, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
         if err != nil </span><span class="cov0" title="0">{
                 log.Fatal(err)
         }</span>
-        <span class="cov0" title="0">defer poolConnection.Close()
-
-        err = db.MigrationReWriteTableWallets(poolConnection)
+        <span class="cov0" title="0">Log.SetOutput(logfile)
+        level, err := logrus.ParseLevel(config.AppConfig.LOG_LEVEL)
         if err != nil </span><span class="cov0" title="0">{
-                log.Fatal(err)
+                Log.Warn("Setup incorrected log-level, using default: INFO")
+                Log.SetLevel(logrus.InfoLevel)
+        }</span> else<span class="cov0" title="0"> {
+                Log.SetLevel(level)
         }</span>
-
-        <span class="cov0" title="0">router := v1.SetupRouter(poolConnection)
-        log.Fatal(router.Run(config.AppConfig.SERVER_URL))</span>
 }
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package middleware
+		<pre class="file" id="file3" style="display: none">package middleware
 
 import (
         "github.com/gin-gonic/gin"
 )
 
-func MiddlewareContentType(c *gin.Context) <span class="cov8" title="1">{
+func MiddlewareContentType(c *gin.Context) <span class="cov0" title="0">{
         c.Header("Content-Type", "application/json")
         c.Next()
 }</span>
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package models
+		<pre class="file" id="file4" style="display: none">package utils
+
+import (
+        "os"
+        "wallet-app/internal/logger"
+)
+
+var _prefix = "internal/services/queries/"
+
+// used prefix for filepath !
+func ReadQuery(filepath string) string <span class="cov0" title="0">{
+        data, err := os.ReadFile(_prefix + filepath)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Log.Errorf("Error reading file query: %s", filepath)
+                return ""
+        }</span>
+        <span class="cov0" title="0">return string(data)</span>
+
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package models
 
 type ResponseError struct {
         Error string
@@ -367,10 +268,10 @@ func NewResponseData(data interface{}) *ResponseData <span class="cov0" title="0
 }</span>
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package models
+		<pre class="file" id="file6" style="display: none">package models
 
 import (
-        "wallet-app/errors_app"
+        "wallet-app/internal/errors"
 
         "github.com/google/uuid"
 )
@@ -397,7 +298,7 @@ func (wallet *Wallet) Withdraw(amount float64) <span class="cov8" title="1">{
 
 func (wallet *Wallet) ValidateAmountValue(amount float64) error <span class="cov8" title="1">{
         if amount &lt;= 0 </span><span class="cov8" title="1">{
-                return errors_app.ErrorValidateAmountValue
+                return errors.ErrorValidateAmountValue
         }</span>
         <span class="cov8" title="1">return nil</span>
 }
@@ -412,148 +313,9 @@ func (wallet *Wallet) SetOperationBalance(operation_wallet OperationWallet) erro
         case OperationTypeWithdraw:<span class="cov8" title="1">
                 wallet.Withdraw(operation_wallet.Amount)</span>
         default:<span class="cov8" title="1">
-                return errors_app.ErrorOperationTypeValue</span>
+                return errors.ErrorOperationTypeValue</span>
         }
         <span class="cov8" title="1">return nil</span>
-}
-</pre>
-		
-		<pre class="file" id="file8" style="display: none">package services
-
-import (
-        "fmt"
-        "wallet-app/config"
-)
-
-// short func for readble
-var f = fmt.Sprintf
-
-// output string not contain params
-func QueryGetWalletAll() string <span class="cov8" title="1">{
-        return f("SELECT * FROM %s ;",
-                config.AppConfig.DB_NAME)
-}</span>
-
-// output string contain param
-// $1 - id (uuid.UUID)
-func QueryGetWallet() string <span class="cov8" title="1">{
-        return f("SELECT * FROM %s WHERE id = $1 ;",
-                config.AppConfig.DB_NAME)
-}</span>
-
-// output string contain params
-// $1 - id (uuid.UUID)
-// $2 - balance (float64)
-func QueryCreateWallet() string <span class="cov8" title="1">{
-        return f("INSERT INTO %s (id, balance) VALUES ($1, $2) ;",
-                config.AppConfig.DB_NAME)
-}</span>
-
-// output string contain params
-// $1 - balance (float64)
-// $2 - id (uuid.UUID)
-func QueryUpdateWalletBalance() string <span class="cov8" title="1">{
-        return f("UPDATE %s SET balance = $1 WHERE id = $2 ;", config.AppConfig.DB_NAME)
-}</span>
-</pre>
-		
-		<pre class="file" id="file9" style="display: none">package services
-
-import (
-        "context"
-        "wallet-app/db"
-        "wallet-app/models"
-
-        "github.com/google/uuid"
-        "github.com/jackc/pgx/v4/pgxpool"
-)
-
-type WalletService struct {
-        poolConnection *pgxpool.Pool
-}
-
-func NewWalletService(poolConnection *pgxpool.Pool) *WalletService <span class="cov8" title="1">{
-        return &amp;WalletService{
-                poolConnection: poolConnection,
-        }
-}</span>
-
-func (walletService *WalletService) GetWalletAll() ([]*models.Wallet, error) <span class="cov8" title="1">{
-        conn, err := db.ConnectDatabase()
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">defer conn.Close()
-
-        rows, err := conn.Query(context.Background(), QueryGetWalletAll())
-
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">var wallets []*models.Wallet
-        for rows.Next() </span><span class="cov8" title="1">{
-                var wallet models.Wallet
-                if err := rows.Scan(&amp;wallet.ID, &amp;wallet.Balance); err != nil </span><span class="cov0" title="0">{
-                        return nil, err
-                }</span>
-                <span class="cov8" title="1">wallets = append(wallets, &amp;wallet)</span>
-        }
-        <span class="cov8" title="1">return wallets, nil</span>
-}
-
-func (walletService *WalletService) GetWallet(id uuid.UUID) (*models.Wallet, error) <span class="cov8" title="1">{
-        conn, err := db.ConnectDatabase()
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">defer conn.Close()
-
-        var wallet models.Wallet
-        err = conn.QueryRow(context.Background(), QueryGetWallet(), id).Scan(&amp;wallet.ID, &amp;wallet.Balance)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">return &amp;wallet, nil</span>
-}
-
-func (walletService *WalletService) CreateWallet() (*models.Wallet, error) <span class="cov8" title="1">{
-        conn, err := db.ConnectDatabase()
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">defer conn.Close()
-
-        wallet := models.NewWallet()
-        _, err = conn.Exec(context.Background(), QueryCreateWallet(), wallet.ID, wallet.Balance)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">return wallet, nil</span>
-}
-
-func (walletService *WalletService) CreateWalletFromData(wallet *models.Wallet) error <span class="cov8" title="1">{
-        conn, err := db.ConnectDatabase()
-        if err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span>
-        <span class="cov8" title="1">defer conn.Close()
-
-        _, err = conn.Exec(context.Background(), QueryCreateWallet(), wallet.ID, wallet.Balance)
-        if err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span>
-        <span class="cov8" title="1">return nil</span>
-}
-
-func (walletService *WalletService) UpdateWalletBalance(wallet *models.Wallet) error <span class="cov8" title="1">{
-        conn, err := db.ConnectDatabase()
-        if err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span>
-        <span class="cov8" title="1">defer conn.Close()
-
-        _, err = conn.Exec(context.Background(), QueryUpdateWalletBalance(), &amp;wallet.Balance, &amp;wallet.ID)
-        return err</span>
 }
 </pre>
 		

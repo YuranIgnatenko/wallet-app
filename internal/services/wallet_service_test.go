@@ -17,6 +17,7 @@ func TestGetWalletAll(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer pool.Close()
 	walletService := NewWalletService(pool)
 	_, err = walletService.GetWalletAll()
 	if err != nil {
@@ -32,6 +33,7 @@ func TestCreateWallet(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer pool.Close()
 	walletService := NewWalletService(pool)
 	_, err = walletService.CreateWallet()
 	if err != nil {
@@ -47,6 +49,7 @@ func TestGetWallet(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer pool.Close()
 	walletService := NewWalletService(pool)
 	wallet, err := walletService.CreateWallet()
 	if err != nil {
@@ -67,6 +70,7 @@ func TestCreateWalletFromData(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer pool.Close()
 	walletService := NewWalletService(pool)
 	err = walletService.CreateWalletFromData(&models.Wallet{ID: id, Balance: 0})
 	if err != nil {
@@ -88,6 +92,7 @@ func TestUpdateWalletBalance(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer pool.Close()
 	walletService := NewWalletService(pool)
 	err = walletService.CreateWalletFromData(wallet)
 	if err != nil {

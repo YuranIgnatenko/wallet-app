@@ -31,7 +31,19 @@ git clone https://github.com/YuranIgnatenko/wallet-app
 mkdir config.env
 
 # Write to file `config.env`
-DATABASE_URL=postgres://user:password@address:post/wallets?sslmode=disable
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASS=postgres
+DB_NAME=wallets
+
+SERVER_HOST=localhost
+SERVER_PORT=8080
+
+# settings logger
+# level : info|warning|error|fatal|panic
+LOG_LEVEL=info
+LOG_FILENAME=logs/app.log
 ```
 
 ---

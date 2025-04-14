@@ -18,6 +18,7 @@ func main() {
 	poolConnection, err := db.ConnectDatabase()
 	if err != nil {
 		logger.Log.Fatalf("Error connecting db, err:%s", err.Error())
+		panic(err)
 	}
 	defer poolConnection.Close()
 
