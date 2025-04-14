@@ -1,0 +1,1 @@
+INSERT INTO Wallets (id, balance) VALUES ($1, $2) ;

@@ -2,7 +2,7 @@ package models
 
 import (
 	"testing"
-	"wallet-app/internalerrors"
+	"wallet-app/internal/errors"
 
 	"github.com/google/uuid"
 )

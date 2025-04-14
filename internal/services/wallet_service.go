@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"wallet-app/db"
+	"wallet-app/internal/utils"
 	"wallet-app/pkg/models"
 
 	"github.com/google/uuid"
@@ -20,14 +20,8 @@ func NewWalletService(poolConnection *pgxpool.Pool) *WalletService {
 }
 
 func (walletService *WalletService) GetWalletAll() ([]*models.Wallet, error) {
-	conn, err := db.ConnectDatabase()
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
-	rows, err := conn.Query(context.Background(), QueryGetWalletAll())
-
+	rows, err := walletService.poolConnection.Query(
+		context.Background(), utils.ReadQuery("wallet_get_all.sql"))
 	if err != nil {
 		return nil, err
 	}
@@ -43,14 +37,8 @@ func (walletService *WalletService) GetWalletAll() ([]*models.Wallet, error) {
 }
 
 func (walletService *WalletService) GetWallet(id uuid.UUID) (*models.Wallet, error) {
-	conn, err := db.ConnectDatabase()
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
 	var wallet models.Wallet
-	err = conn.QueryRow(context.Background(), QueryGetWallet(), id).Scan(&wallet.ID, &wallet.Balance)
+	err := walletService.poolConnection.QueryRow(context.Background(), utils.ReadQuery("wallet_get_by_id.sql"), id).Scan(&wallet.ID, &wallet.Balance)
 	if err != nil {
 		return nil, err
 	}
@@ -58,14 +46,8 @@ func (walletService *WalletService) GetWallet(id uuid.UUID) (*models.Wallet, err
 }
 
 func (walletService *WalletService) CreateWallet() (*models.Wallet, error) {
-	conn, err := db.ConnectDatabase()
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
 	wallet := models.NewWallet()
-	_, err = conn.Exec(context.Background(), QueryCreateWallet(), wallet.ID, wallet.Balance)
+	_, err := walletService.poolConnection.Exec(context.Background(), utils.ReadQuery("wallet_create.sql"), wallet.ID, wallet.Balance)
 	if err != nil {
 		return nil, err
 	}
@@ -73,26 +55,12 @@ func (walletService *WalletService) CreateWallet() (*models.Wallet, error) {
 }
 
 func (walletService *WalletService) CreateWalletFromData(wallet *models.Wallet) error {
-	conn, err := db.ConnectDatabase()
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	_, err = conn.Exec(context.Background(), QueryCreateWallet(), wallet.ID, wallet.Balance)
-	if err != nil {
-		return err
-	}
-	return nil
+	_, err := walletService.poolConnection.Exec(context.Background(), utils.ReadQuery("wallet_create.sql"), wallet.ID, wallet.Balance)
+	return err
 }
 
 func (walletService *WalletService) UpdateWalletBalance(wallet *models.Wallet) error {
-	conn, err := db.ConnectDatabase()
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	_, err = conn.Exec(context.Background(), QueryUpdateWalletBalance(), &wallet.Balance, &wallet.ID)
+	_, err := walletService.poolConnection.Exec(
+		context.Background(), utils.ReadQuery("internal/services/queries/wallet_update.sql"), &wallet.Balance, &wallet.ID)
 	return err
 }
