@@ -18,6 +18,8 @@ type Config struct {
 	SERVER_HOST  string
 	SERVER_PORT  string
 	SERVER_URL   string
+	LOG_LEVEL    string
+	LOG_FILENAME string
 }
 
 var AppConfig *Config
@@ -44,6 +46,8 @@ func LoadConfig(namefile string) error {
 	server_host := os.Getenv("SERVER_HOST")
 	server_port := os.Getenv("SERVER_PORT")
 	server_url := fmt.Sprintf("%s:%s", server_host, server_port)
+	log_level := os.Getenv("LOG_LEVEL")
+	log_filename := os.Getenv("LOG_FILENAME")
 
 	AppConfig = &Config{
 		DB_HOST:      db_host,
@@ -55,6 +59,8 @@ func LoadConfig(namefile string) error {
 		SERVER_HOST:  server_host,
 		SERVER_PORT:  server_port,
 		SERVER_URL:   server_url,
+		LOG_LEVEL:    log_level,
+		LOG_FILENAME: log_filename,
 	}
 	return nil
 }

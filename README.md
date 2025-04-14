@@ -57,4 +57,4 @@ go build cmd/main.go
 http://127.0.0.1:5500/coverage.html
 ```
 
-![](/demo_screen/cover.png)
+![demo](/internal/static/cover.png)
